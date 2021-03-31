@@ -1,5 +1,5 @@
 {
-  "name": "gmail-inbox",
+  "name": "@pixeladed/gmail-inbox",
   "version": "1.4.0",
   "description": "Receive Gmail emails in code!",
   "main": "lib/Inbox.js",
