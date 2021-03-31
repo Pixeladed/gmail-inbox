@@ -2,7 +2,7 @@ import { gmail_v1, google } from 'googleapis';
 // support for typescript debugging (refers to ts files instead of the transpiled js files)
 import * as sourceMapSupport from 'source-map-support';
 import { formatMessage } from './formatMessage';
-import { authorizeAccount } from './GoogleAuthorizer';
+import { authorizeAccount, ClientCredentials } from './GoogleAuthorizer';
 import { InboxMethods } from './InboxMethods.interface';
 import { Label } from './Label.interface';
 import { MessageDateType, SearchQuery, UnixTimestamp } from './SearchQuery.interface';
@@ -33,10 +33,10 @@ export class Inbox implements InboxMethods {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
-  constructor(private credentialsJsonPath: string, private tokenPath = 'gmail-token.json') {}
+  constructor(private readonly credentials: ClientCredentials, private tokenPath = 'gmail-token.json') {}
 
   public async authenticateAccount(): Promise<void> {
-    const oAuthClient = await authorizeAccount(this.credentialsJsonPath, this.tokenPath);
+    const oAuthClient = await authorizeAccount(this.credentials, this.tokenPath);
     this.gmailApi = google.gmail({ version: 'v1', auth: oAuthClient });
     this.authenticated = true;
   }

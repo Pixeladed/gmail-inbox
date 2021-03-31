@@ -2,10 +2,9 @@ import { OAuth2Client } from 'google-auth-library';
 import { google, oauth2_v1 } from 'googleapis';
 
 import { readFileSync, writeFileSync } from 'fs';
-import * as path from 'path';
 import * as readline from 'readline';
 
-interface ClientCredentials {
+export interface ClientCredentials {
   client_id: string;
   client_secret: string;
   redirect_uris: string[];
@@ -14,9 +13,7 @@ interface ClientCredentials {
 // If modifying these scopes, delete token.json.
 const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
 
-export const authorizeAccount = async (credentialsJsonPath: string, tokenPath: string): Promise<OAuth2Client> => {
-  const credentials = getCredentials(credentialsJsonPath);
-
+export const authorizeAccount = async (credentials: ClientCredentials, tokenPath: string): Promise<OAuth2Client> => {
   const auth = new google.auth.OAuth2({
     // more info on the interface "OAuth2ClientOptions" in 'googleapis' package
     clientId: credentials.client_id,
@@ -89,7 +86,7 @@ const getNewToken = async (oAuth2Client: OAuth2Client, tokenPath): Promise<any> 
         if (err) {
           reject(err);
         } else {
-          writeFileSync(tokenPath, JSON.stringify(token));
+          // writeFileSync(tokenPath, JSON.stringify(token));
           resolve(token);
         }
       });
