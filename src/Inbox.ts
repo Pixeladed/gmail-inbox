@@ -33,10 +33,10 @@ export class Inbox implements InboxMethods {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
-  constructor(private readonly credentials: ClientCredentials, private tokenPath = 'gmail-token.json') {}
+  constructor(private readonly credentials: ClientCredentials) {}
 
   public async authenticateAccount(): Promise<void> {
-    const oAuthClient = await authorizeAccount(this.credentials, this.tokenPath);
+    const oAuthClient = await authorizeAccount(this.credentials);
     this.gmailApi = google.gmail({ version: 'v1', auth: oAuthClient });
     this.authenticated = true;
   }
@@ -54,6 +54,7 @@ export class Inbox implements InboxMethods {
             return;
           }
 
+          // @ts-expect-error
           resolve(result?.data.labels);
         },
       );

@@ -13,7 +13,7 @@ export interface ClientCredentials {
 // If modifying these scopes, delete token.json.
 const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
 
-export const authorizeAccount = async (credentials: ClientCredentials, tokenPath: string): Promise<OAuth2Client> => {
+export const authorizeAccount = async (credentials: ClientCredentials): Promise<OAuth2Client> => {
   const auth = new google.auth.OAuth2({
     // more info on the interface "OAuth2ClientOptions" in 'googleapis' package
     clientId: credentials.client_id,
@@ -21,7 +21,7 @@ export const authorizeAccount = async (credentials: ClientCredentials, tokenPath
     redirectUri: credentials.redirect_uris[0],
   });
 
-  const token = await getToken(auth, tokenPath);
+  const token = await getToken(auth);
 
   if (token) {
     auth.setCredentials(token);
@@ -57,18 +57,12 @@ const getCredentials = (credentialsJsonPath: string): ClientCredentials => {
 
 const getToken = async (
   oAuth2Client: OAuth2Client,
-  tokenPath: string,
 ): Promise<any /* interface 'Credentials' (could not import from googleapis types) */ | null> => {
-  try {
-    const credentialsString = readFileSync(tokenPath, { encoding: 'utf8' });
-    return JSON.parse(credentialsString);
-  } catch (e) {
-    // means we got no valid token to use, so we request a new one
-    return await getNewToken(oAuth2Client, tokenPath);
-  }
+  // means we got no valid token to use, so we request a new one
+  return getNewToken(oAuth2Client);
 };
 
-const getNewToken = async (oAuth2Client: OAuth2Client, tokenPath): Promise<any> => {
+const getNewToken = async (oAuth2Client: OAuth2Client): Promise<any> => {
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
@@ -86,7 +80,6 @@ const getNewToken = async (oAuth2Client: OAuth2Client, tokenPath): Promise<any> 
         if (err) {
           reject(err);
         } else {
-          // writeFileSync(tokenPath, JSON.stringify(token));
           resolve(token);
         }
       });
