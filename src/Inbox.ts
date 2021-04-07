@@ -33,10 +33,16 @@ export class Inbox implements InboxMethods {
   private gmailApi: gmail_v1.Gmail = google.gmail('v1');
   private authenticated: boolean = false;
 
-  constructor(private readonly credentials: ClientCredentials) {}
+  constructor(
+    private readonly credentials: ClientCredentials,
+    private readonly token: {
+      access_token: string,
+      refresh_token: string
+    }
+  ) {}
 
   public async authenticateAccount(): Promise<void> {
-    const oAuthClient = await authorizeAccount(this.credentials);
+    const oAuthClient = await authorizeAccount(this.credentials, this.token.refresh_token);
     this.gmailApi = google.gmail({ version: 'v1', auth: oAuthClient });
     this.authenticated = true;
   }
