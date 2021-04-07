@@ -54,7 +54,7 @@ export class Inbox implements InboxMethods {
             return;
           }
 
-          // @ts-expect-error
+          // @ts-ignore
           resolve(result?.data.labels);
         },
       );
