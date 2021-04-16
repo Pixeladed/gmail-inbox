@@ -8,13 +8,17 @@ export interface ClientCredentials {
   redirect_uris: string[];
 }
 
-export const authorizeAccount = async (credentials: ClientCredentials, refreshToken: string): Promise<OAuth2Client> => {
-  const auth = new google.auth.OAuth2({
+export const getAuthClient = (credentials: ClientCredentials) => {
+  return new google.auth.OAuth2({
     // more info on the interface "OAuth2ClientOptions" in 'googleapis' package
     clientId: credentials.client_id,
     clientSecret: credentials.client_secret,
     redirectUri: credentials.redirect_uris[0],
   });
+}
+
+export const authorizeAccount = async (credentials: ClientCredentials, refreshToken: string): Promise<OAuth2Client> => {
+  const auth = getAuthClient(credentials)
 
   auth.setCredentials({ refresh_token: refreshToken })
 
@@ -41,13 +45,31 @@ export const authorizeAccount = async (credentials: ClientCredentials, refreshTo
   return auth;
 };
 
-const getNewToken = async (oAuth2Client: OAuth2Client): Promise<any> => {
+export const getAuthUrl = (oAuth2Client: OAuth2Client) => {
   const scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
     scope: scopes,
   });
+  return authUrl
+}
+
+export const tokenToCred = async (oAuth2Client: OAuth2Client, code: string) => {
+  return new Promise((resolve, reject) => {
+    oAuth2Client.getToken(code, (err, token) => {
+      if (err) {
+        reject(err);
+      } else {
+        console.log('received token', token)
+        resolve(token);
+      }
+    });
+  })
+}
+
+const getNewToken = async (oAuth2Client: OAuth2Client): Promise<any> => {
+  const authUrl = getAuthUrl(oAuth2Client)
   console.log('Authorize this app by visiting this url:', authUrl);
   const readLine = readline.createInterface({
     input: process.stdin,
@@ -56,14 +78,12 @@ const getNewToken = async (oAuth2Client: OAuth2Client): Promise<any> => {
   return new Promise((resolve, reject) => {
     readLine.question('Enter the code from that page here: ', async code => {
       readLine.close();
-      oAuth2Client.getToken(code, (err, token) => {
-        if (err) {
-          reject(err);
-        } else {
-          console.log('received token', token)
-          resolve(token);
-        }
-      });
+      try {
+        const cred = await tokenToCred(oAuth2Client, code)
+        resolve(cred)
+      } catch (error) {
+        reject(error)
+      }
     });
   });
 };

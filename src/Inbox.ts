@@ -2,7 +2,7 @@ import { gmail_v1, google } from 'googleapis';
 // support for typescript debugging (refers to ts files instead of the transpiled js files)
 import * as sourceMapSupport from 'source-map-support';
 import { formatMessage } from './formatMessage';
-import { authorizeAccount, ClientCredentials } from './GoogleAuthorizer';
+import { authorizeAccount, ClientCredentials, getAuthClient, getAuthUrl, tokenToCred } from './GoogleAuthorizer';
 import { InboxMethods } from './InboxMethods.interface';
 import { Label } from './Label.interface';
 import { MessageDateType, SearchQuery, UnixTimestamp } from './SearchQuery.interface';
@@ -40,6 +40,16 @@ export class Inbox implements InboxMethods {
       refresh_token: string
     }
   ) {}
+
+  public async getAuthUrl() {
+    const client = await getAuthClient(this.credentials)
+    return getAuthUrl(client)
+  }
+  
+  public async convertTokenToCredentials(token: string) {
+    const client = await getAuthClient(this.credentials)
+    return tokenToCred(client, token)
+  }
 
   public async authenticateAccount(): Promise<void> {
     const oAuthClient = await authorizeAccount(this.credentials, this.token.refresh_token);
